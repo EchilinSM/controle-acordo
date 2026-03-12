@@ -31,6 +31,7 @@ margin-top:20px;
 th,td{
 border:1px solid #ddd;
 padding:8px;
+font-size:14px;
 }
 
 th{
@@ -67,6 +68,10 @@ border-radius:10px;
 margin-bottom:15px;
 }
 
+input[type=file]{
+font-size:12px;
+}
+
 </style>
 </head>
 
@@ -79,7 +84,6 @@ margin-bottom:15px;
 <div id="login">
 
 <select id="usuario">
-
 <option>Adriano</option>
 <option>Waltemir</option>
 <option>Nice</option>
@@ -88,7 +92,6 @@ margin-bottom:15px;
 <option>Ademir</option>
 <option>Leonice</option>
 <option>admin</option>
-
 </select>
 
 <button onclick="entrar()">Entrar</button>
@@ -102,7 +105,7 @@ margin-bottom:15px;
 
 <input type="text" id="pesquisa" placeholder="Pesquisar..." onkeyup="filtrar()">
 
-<table id="tabela">
+<table>
 
 <thead>
 <tr>
@@ -110,6 +113,7 @@ margin-bottom:15px;
 <th>Mês</th>
 <th>Valor</th>
 <th>Data</th>
+<th>Comprovante</th>
 <th>Status</th>
 </tr>
 </thead>
@@ -177,7 +181,6 @@ let valorPago=pagos*valorMensal
 let restante=total-valorPago
 
 document.getElementById("painel").innerHTML=
-
 "Pago: R$ "+valorPago.toFixed(2)+" | Restante: R$ "+restante.toFixed(2)
 
 }
@@ -195,26 +198,51 @@ for(let mes=1; mes<=meses; mes++){
 let index=pIndex*meses+(mes-1)
 
 if(!dados[index]){
-
-dados[index]={pago:false,data:""}
-
+dados[index]={pago:false,data:"",arquivo:""}
 }
 
 let linha=document.createElement("tr")
 
-let pessoaCell=document.createElement("td")
-pessoaCell.innerText=nome
+let pessoa=document.createElement("td")
+pessoa.innerText=nome
 
 let mesCell=document.createElement("td")
 mesCell.innerText=mes
 
-let valorCell=document.createElement("td")
-valorCell.innerText="R$ "+valorMensal.toFixed(2)
+let valor=document.createElement("td")
+valor.innerText="R$ "+valorMensal.toFixed(2)
 
-let dataCell=document.createElement("td")
-dataCell.innerText=dados[index].data
+let data=document.createElement("td")
+data.innerText=dados[index].data
 
-let statusCell=document.createElement("td")
+let comprovante=document.createElement("td")
+
+let file=document.createElement("input")
+file.type="file"
+
+let nomeArquivo=document.createElement("div")
+nomeArquivo.innerText=dados[index].arquivo || ""
+
+file.onchange=function(){
+
+let arquivo=file.files[0]
+
+if(arquivo){
+
+dados[index].arquivo=arquivo.name
+
+nomeArquivo.innerText=arquivo.name
+
+salvar()
+
+}
+
+}
+
+comprovante.appendChild(file)
+comprovante.appendChild(nomeArquivo)
+
+let status=document.createElement("td")
 
 let btn=document.createElement("button")
 
@@ -223,16 +251,12 @@ function atualizar(){
 btn.innerText=dados[index].pago?"Pago":"Marcar"
 
 if(dados[index].pago){
-
 linha.className="pago"
-
 }else if(mes<new Date().getMonth()+1){
-
 linha.className="atrasado"
-
 }
 
-dataCell.innerText=dados[index].data
+data.innerText=dados[index].data
 
 }
 
@@ -241,6 +265,7 @@ if(usuario!="admin" && usuario!=nome){
 btn.innerText="Bloqueado"
 btn.className="bloqueado"
 btn.disabled=true
+file.disabled=true
 
 }else{
 
@@ -249,13 +274,9 @@ btn.onclick=function(){
 dados[index].pago=!dados[index].pago
 
 if(dados[index].pago){
-
 dados[index].data=new Date().toLocaleDateString()
-
 }else{
-
 dados[index].data=""
-
 }
 
 salvar()
@@ -268,13 +289,14 @@ painel()
 
 }
 
-statusCell.appendChild(btn)
+status.appendChild(btn)
 
-linha.appendChild(pessoaCell)
+linha.appendChild(pessoa)
 linha.appendChild(mesCell)
-linha.appendChild(valorCell)
-linha.appendChild(dataCell)
-linha.appendChild(statusCell)
+linha.appendChild(valor)
+linha.appendChild(data)
+linha.appendChild(comprovante)
+linha.appendChild(status)
 
 tabela.appendChild(linha)
 

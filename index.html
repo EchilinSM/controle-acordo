@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Controle do Acordo</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:linear-gradient(135deg,#5f9cff,#8fd3f4);
+padding:20px;
+text-align:center;
+}
+
+.container{
+background:white;
+max-width:1100px;
+margin:auto;
+padding:20px;
+border-radius:10px;
+box-shadow:0px 5px 20px rgba(0,0,0,0.2);
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:20px;
+}
+
+th,td{
+border:1px solid #ddd;
+padding:8px;
+}
+
+th{
+background:#f1f1f1;
+}
+
+.pago{
+background:#b8ffb8;
+}
+
+.atrasado{
+background:#ffb8b8;
+}
+
+button{
+padding:6px 10px;
+background:#28a745;
+color:white;
+border:none;
+border-radius:5px;
+cursor:pointer;
+margin:5px;
+}
+
+.bloqueado{
+background:#999;
+cursor:not-allowed;
+}
+
+#painel{
+background:#f4f4f4;
+padding:10px;
+border-radius:10px;
+margin-bottom:15px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Controle do Acordo</h1>
+
+<div id="login">
+
+<select id="usuario">
+
+<option>Adriano</option>
+<option>Waltemir</option>
+<option>Nice</option>
+<option>Rosi</option>
+<option>Susana</option>
+<option>Ademir</option>
+<option>Leonice</option>
+<option>admin</option>
+
+</select>
+
+<button onclick="entrar()">Entrar</button>
+
+</div>
+
+<h3 id="usuarioAtual"></h3>
+<button onclick="sair()">Sair</button>
+
+<div id="painel"></div>
+
+<input type="text" id="pesquisa" placeholder="Pesquisar..." onkeyup="filtrar()">
+
+<table id="tabela">
+
+<thead>
+<tr>
+<th>Pessoa</th>
+<th>Mês</th>
+<th>Valor</th>
+<th>Data</th>
+<th>Status</th>
+</tr>
+</thead>
+
+<tbody id="corpoTabela"></tbody>
+
+</table>
+
+</div>
+
+<script>
+
+let usuario=""
+
+let total=12000
+
+let pessoas=[
+"Adriano",
+"Waltemir",
+"Nice",
+"Rosi",
+"Susana",
+"Ademir",
+"Leonice"
+]
+
+let meses=12
+
+let valorMensal=(total/pessoas.length)/meses
+
+let dados=JSON.parse(localStorage.getItem("pagamentos"))||[]
+
+function entrar(){
+
+usuario=document.getElementById("usuario").value
+
+document.getElementById("login").style.display="none"
+
+document.getElementById("usuarioAtual").innerHTML="Usuário: "+usuario
+
+criarTabela()
+
+painel()
+
+}
+
+function sair(){
+
+location.reload()
+
+}
+
+function salvar(){
+
+localStorage.setItem("pagamentos",JSON.stringify(dados))
+
+}
+
+function painel(){
+
+let pagos=dados.filter(d=>d && d.pago).length
+
+let valorPago=pagos*valorMensal
+
+let restante=total-valorPago
+
+document.getElementById("painel").innerHTML=
+
+"Pago: R$ "+valorPago.toFixed(2)+" | Restante: R$ "+restante.toFixed(2)
+
+}
+
+function criarTabela(){
+
+let tabela=document.getElementById("corpoTabela")
+
+tabela.innerHTML=""
+
+pessoas.forEach((nome,pIndex)=>{
+
+for(let mes=1; mes<=meses; mes++){
+
+let index=pIndex*meses+(mes-1)
+
+if(!dados[index]){
+
+dados[index]={pago:false,data:""}
+
+}
+
+let linha=document.createElement("tr")
+
+let pessoaCell=document.createElement("td")
+pessoaCell.innerText=nome
+
+let mesCell=document.createElement("td")
+mesCell.innerText=mes
+
+let valorCell=document.createElement("td")
+valorCell.innerText="R$ "+valorMensal.toFixed(2)
+
+let dataCell=document.createElement("td")
+dataCell.innerText=dados[index].data
+
+let statusCell=document.createElement("td")
+
+let btn=document.createElement("button")
+
+function atualizar(){
+
+btn.innerText=dados[index].pago?"Pago":"Marcar"
+
+if(dados[index].pago){
+
+linha.className="pago"
+
+}else if(mes<new Date().getMonth()+1){
+
+linha.className="atrasado"
+
+}
+
+dataCell.innerText=dados[index].data
+
+}
+
+if(usuario!="admin" && usuario!=nome){
+
+btn.innerText="Bloqueado"
+btn.className="bloqueado"
+btn.disabled=true
+
+}else{
+
+btn.onclick=function(){
+
+dados[index].pago=!dados[index].pago
+
+if(dados[index].pago){
+
+dados[index].data=new Date().toLocaleDateString()
+
+}else{
+
+dados[index].data=""
+
+}
+
+salvar()
+
+atualizar()
+
+painel()
+
+}
+
+}
+
+statusCell.appendChild(btn)
+
+linha.appendChild(pessoaCell)
+linha.appendChild(mesCell)
+linha.appendChild(valorCell)
+linha.appendChild(dataCell)
+linha.appendChild(statusCell)
+
+tabela.appendChild(linha)
+
+atualizar()
+
+}
+
+})
+
+}
+
+function filtrar(){
+
+let input=document.getElementById("pesquisa").value.toLowerCase()
+
+let linhas=document.getElementById("corpoTabela").getElementsByTagName("tr")
+
+for(let i=0;i<linhas.length;i++){
+
+let texto=linhas[i].innerText.toLowerCase()
+
+linhas[i].style.display=texto.includes(input)?"":"none"
+
+}
+
+}
+
+</script>
+
+</body>
+</html>
